@@ -333,6 +333,9 @@ This project demonstrates:
 
 **Ready to revolutionize how governments protect citizen data? Experience the future of secure data management today.**
 
+<img src="https://raw.githubusercontent.com/magdyelboushy-stack/Secure-Citizen-Data/main/image/diagram-export-8-10-2025-7_40_35-AM.png" alt="Diagram" width="600">
+
+
 https://github.com/magdyelboushy-stack/Secure-Citizen-Data/blob/main/image/diagram-export-8-10-2025-7_40_35-AM.png?raw=true
 
 
