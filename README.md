@@ -333,6 +333,8 @@ This project demonstrates:
 
 **Ready to revolutionize how governments protect citizen data? Experience the future of secure data management today.**
 
+https://github.com/magdyelboushy-stack/Secure-Citizen-Data/blob/ea48fdaa419be63c4f4a211b77dce316e8ee56da/image/diagram-export-8-10-2025-7_40_35-AM.png
+
 
 # 🏆 نظام خزنة البيانات الآمنة للمواطنين
 ## دليل التقييم التقني للمحكمين
