@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام خزانه بينات المواطنين</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="image/google.png">
+
+    <link rel="stylesheet" href="style/styles.css">
+
+    <style>
+        .disabled-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border-radius: 0.375rem;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .disabled-overlay span {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            position: relative;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        #mainContent {
+            display: none;
+        }
+
+        .auth-required-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .auth-required-message h3 {
+            margin-bottom: 20px;
+        }
+
+        .auth-required-message p {
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark glass-navbar rounded-4" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" data-i18n="brand">
+                <i class="fas fa-lock me-2"></i>
+                خزينة بيانات المواطنين
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home" data-i18n="nav_home">الرئيسية</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#technologies" data-i18n="nav_tech">التقنيات</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#viewBlocksCard" data-i18n="nav_blocks">البلوكات</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" id="themeToggleBtn" aria-label="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="langToggleBtn" aria-label="Switch language">EN</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login/Registration Modal -->
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="authModalLabel" data-i18n="login_title">تسجيل الدخول</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="authForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="authEmail" class="form-label" data-i18n="email_label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="authEmail" placeholder="أدخل بريدك الإلكتروني" required>
+                            <div class="invalid-feedback" data-i18n="email_invalid">الرجاء إدخال بريد إلكتروني صالح.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="authPassword" class="form-label" data-i18n="password_label">كلمة المرور</label>
+                            <input type="password" class="form-control" id="authPassword" placeholder="أدخل كلمة المرور" required minlength="6">
+                            <div class="invalid-feedback" data-i18n="password_invalid">الرجاء إدخال كلمة مرور (6 أحرف على الأقل).</div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-success-custom" id="loginBtn" data-i18n="login_btn">تسجيل الدخول</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4">
+        <!-- Header Section -->
+        <div class="text-center mb-5">
+            <h1 class="display-4"><i class="fas fa-lock me-2"></i><span data-i18n="header_title">نظام خزينة بيانات المواطنين الآمنة</span></h1>
+            <p class="lead" data-i18n="header_subtitle">يعمل بتقنية البلوك تشين اللامركزية والشفافة</p>
+            <div id="authStatus" class="mt-3">
+                <span class="badge bg-secondary" data-i18n="auth_status">غير مسجل الدخول</span>
+                <button class="btn btn-sm btn-outline-light ms-2" id="toggleAuthModalBtn" data-i18n="open_login">تسجيل الدخول</button>
+            </div>
+        </div>
+
+        <section id="home" class="text-center mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-3 mb-4">
+                        <i class="fas fa-lock me-3"></i>
+                        <span data-i18n="home_title">نظام خزينة بيانات المواطنين الآمنة</span>
+                    </h1>
+                    <p class="lead mb-4" data-i18n="home_desc">نظام ثوري يعمل بتقنية البلوك تشين اللامركزية والشفافة لحماية بيانات المواطنين</p>
+                    <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="metric-card">
+                                <h3><i class="fas fa-shield-check text-success"></i></h3>
+                                <h4 data-i18n="metric_security">أمان عالي</h4>
+                                <p data-i18n="metric_encryption">تشفير AES-256</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-card">
+                                <h3><i class="fas fa-network-wired text-info"></i></h3>
+                                <h4 data-i18n="metric_decentralized">لامركزي</h4>
+                                <p data-i18n="metric_blockchain">تقنية البلوك تشين</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-card">
+                                <h3><i class="fas fa-eye text-warning"></i></h3>
+                                <h4 data-i18n="metric_transparent">شفاف</h4>
+                                <p data-i18n="metric_auditable">قابل للتدقيق</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Technologies Section -->
+            <section id="technologies" class="mb-5">
+                <div class="container">
+                    <div class="text-center mb-5">
+                        <h2 class="display-4">
+                            <i class="fas fa-cogs me-3"></i>
+                            <span data-i18n="tech_title">التقنيات المستخدمة</span>
+                        </h2>
+                        <p class="lead" data-i18n="tech_subtitle">مجموعة متقدمة من التقنيات الحديثة لضمان الأمان والكفاءة</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fab fa-php"></i>
+                                </div>
+                                <h4>PHP 8.0+</h4>
+                                <p data-i18n="php_desc">لغة البرمجة الخلفية المتقدمة مع PDO لقواعد البيانات الآمنة</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="php_item1">• معالجة البيانات الآمنة</li>
+                                    <li data-i18n="php_item2">• التشفير المتقدم</li>
+                                    <li data-i18n="php_item3">• إدارة الجلسات</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <h4>MySQL 8.0</h4>
+                                <p data-i18n="mysql_desc">قاعدة بيانات متقدمة مع فهرسة محسنة ونظام الأمان المتكامل</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="mysql_item1">• تشفير البيانات الحساسة</li>
+                                    <li data-i18n="mysql_item2">• فهرسة متقدمة</li>
+                                    <li data-i18n="mysql_item3">• إجراءات مخزنة آمنة</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fab fa-js-square"></i>
+                                </div>
+                                <h4>JavaScript ES6+</h4>
+                                <p data-i18n="js_desc">واجهة مستخدم تفاعلية مع معالجة الأخطاء المتقدمة</p>
+                                <ul class="list-unstyled text-start">
+                                    <li>• Async/Await</li>
+                                    <li data-i18n="js_item2">• معالجة الأخطاء</li>
+                                    <li data-i18n="js_item3">• واجهة تفاعلية</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fab fa-google"></i>
+                                </div>
+                                <h4>Firebase Auth</h4>
+                                <p data-i18n="firebase_desc">نظام مصادقة متقدم وآمن من Google</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="firebase_item1">• مصادقة ثنائية</li>
+                                    <li data-i18n="firebase_item2">• أمان متقدم</li>
+                                    <li data-i18n="firebase_item3">• إدارة المستخدمين</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                <h4 data-i18n="aes_title">تشفير AES-256-CBC</h4>
+                                <p data-i18n="aes_desc">أقوى معايير التشفير المعتمدة عالمياً</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="aes_item1">• تشفير البيانات الحساسة</li>
+                                    <li data-i18n="aes_item2">• مفاتيح تشفير آمنة</li>
+                                    <li data-i18n="aes_item3">• هاشينج SHA-256</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fas fa-cubes"></i>
+                                </div>
+                                <h4 data-i18n="blockchain_title">تقنية البلوك تشين</h4>
+                                <p data-i18n="blockchain_desc">سجل موزع لامركزي لضمان الشفافية</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="blockchain_item1">• توافق موزع</li>
+                                    <li data-i18n="blockchain_item2">• تتبع كامل</li>
+                                    <li data-i18n="blockchain_item3">• مقاومة للتلاعب</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="tech-card">
+                                <div class="tech-icon">
+                                    <i class="fab fa-bootstrap"></i>
+                                </div>
+                                <h4>Bootstrap 5 + Cairo Font</h4>
+                                <p data-i18n="bootstrap_desc">تصميم متجاوب وعصري بدعم كامل للعربية</p>
+                                <ul class="list-unstyled text-start">
+                                    <li data-i18n="bootstrap_item1">• تصميم متجاوب</li>
+                                    <li data-i18n="bootstrap_item2">• دعم RTL</li>
+                                    <li data-i18n="bootstrap_item3">• خط القاهرة الجميل</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>   
+        <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="step active" id="step1">
+                        <i class="fas fa-user-plus"></i>
+                        <p data-i18n="step1_desc">إدخال البيانات</p>
+                    </div>
+                    <div class="step" id="step2">
+                        <i class="fas fa-lock"></i>
+                        <p data-i18n="step2_desc">تشفير البيانات</p>
+                    </div>
+                    <div class="step" id="step3">
+                        <i class="fas fa-hammer"></i>
+                        <p data-i18n="step3_desc">تعدين البلوك</p>
+                    </div>
+                    <div class="step" id="step4">
+                        <i class="fas fa-link"></i>
+                        <p data-i18n="step4_desc">إضافة للسلسلة</p>
+                    </div>
+                    <div class="step" id="step5">
+                        <i class="fas fa-check-circle"></i>
+                        <p data-i18n="step5_desc">التحقق والتأكيد</p>
+                    </div>
+                </div>
+         <!-- Comparison Section -->
+            <section id="comparison" class="mb-5">
+                <div class="container">
+                    <div class="text-center mb-5">
+                        <h2 class="display-4">
+                            <i class="fas fa-balance-scale me-3"></i>
+                            <span data-i18n="comparison_title">مقارنة مع الأنظمة التقليدية</span>
+                        </h2>
+                        <p class="lead" data-i18n="comparison_subtitle">اكتشف المزايا الفريدة لنظام البلوك تشين مقارنة بالأنظمة التقليدية</p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table comparison-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="comparison_criteria">المعيار</th>
+                                    <th data-i18n="comparison_blockchain">نظام البلوك تشين</th>
+                                    <th data-i18n="comparison_traditional">النظام التقليدي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-i18n="comparison_security"><strong>الأمان</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_security_blockchain">تشفير AES-256 + عدم القابلية للتعديل</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_security_traditional">قابل للاختراق والتعديل</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_transparency"><strong>الشفافية</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_transparency_blockchain">شفافية كاملة وقابلية التدقيق</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_transparency_traditional">شفافية محدودة</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_centrality"><strong>المركزية</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_centrality_blockchain">لامركزي - لا توجد نقطة فشل واحدة</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_centrality_traditional">مركزي - نقطة فشل واحدة</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_data_safety"><strong>سلامة البيانات</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_data_safety_blockchain">مضمونة رياضياً عبر الهاشينج</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_data_safety_traditional">تعتمد على إجراءات أمنية خارجية</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_cost"><strong>التكلفة</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_cost_blockchain">تكلفة منخفضة بعد التطوير الأولي</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_cost_traditional">تكاليف صيانة وحماية مستمرة</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_trust"><strong>الثقة</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_trust_blockchain">ثقة رياضية - لا حاجة لوسطاء</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_trust_traditional">تعتمد على ثقة المؤسسة</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_censorship_resistance"><strong>مقاومة الرقابة</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_censorship_resistance_blockchain">مقاومة عالية للتلاعب والرقابة</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_censorship_resistance_traditional">عرضة للتدخل والتلاعب</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="comparison_traceability"><strong>إمكانية التتبع</strong></td>
+                                    <td class="advantage">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span data-i18n="comparison_traceability_blockchain">تتبع كامل لجميع المعاملات</span>
+                                    </td>
+                                    <td class="disadvantage">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span data-i18n="comparison_traceability_traditional">تتبع محدود وغير موثوق</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Benefits Cards -->
+                    <div class="row mt-5">
+                        <div class="col-lg-4">
+                            <div class="card p-4 h-100">
+                                <div class="text-center">
+                                    <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                                    <h4 data-i18n="benefits_advanced_protection">حماية متقدمة</h4>
+                                    <p data-i18n="benefits_advanced_protection_desc">يوفر النظام حماية عالية المستوى ضد الاختراق والتلاعب من خلال التشفير المتقدم وتقنية البلوك تشين اللامركزية.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card p-4 h-100">
+                                <div class="text-center">
+                                    <i class="fas fa-eye fa-3x text-info mb-3"></i>
+                                    <h4 data-i18n="benefits_full_transparency">شفافية كاملة</h4>
+                                    <p data-i18n="benefits_full_transparency_desc">جميع المعاملات مسجلة ومحفوظة بشكل دائم وقابل للتدقيق من قبل الجهات المختصة دون إمكانية التلاعب.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card p-4 h-100">
+                                <div class="text-center">
+                                    <i class="fas fa-rocket fa-3x text-warning mb-3"></i>
+                                    <h4 data-i18n="benefits_high_efficiency">كفاءة عالية</h4>
+                                    <p data-i18n="benefits_high_efficiency_desc">معالجة سريعة للمعاملات مع ضمان سلامة البيانات وتوفير الوقت والجهد في العمليات الحكومية.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- Welcome/Authentication Required Section -->
+        <div id="welcomeSection" class="auth-required-message">
+            <h3><i class="fas fa-shield-alt me-2"></i><span data-i18n="welcome_title">مرحباً بك في نظام خزينة البيانات الآمنة</span></h3>
+            <p data-i18n="welcome_desc">للوصول إلى النظام والاستفادة من جميع الميزات، الرجاء تسجيل الدخول أولاً</p>
+            <button class="btn btn-light btn-lg" onclick="document.getElementById('toggleAuthModalBtn').click()">
+                <i class="fas fa-sign-in-alt me-2"></i><span data-i18n="welcome_login_btn">تسجيل الدخول</span>
+            </button>
+        </div>
+
+        <!-- Main Application Content -->
+        <div class="row g-4" id="mainContent">
+            <!-- Statistics Card -->
+            <div class="col-lg-4">
+                <div class="card p-4 h-100">
+                    <h4 class="card-title text-center mb-4 d-flex justify-content-center align-items-center">
+                        <lord-icon src="https://cdn.lordicon.com/bgebyztw.json" trigger="hover"
+                            colors="primary:#ffffff,secondary:#7166ee" style="width:50px;height:50px"
+                            class="me-2"></lord-icon>
+                        <span data-i18n="stats_title">إحصائيات النظام</span>
+                    </h4>
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span data-i18n="stats_total_blocks">إجمالي عدد البلوكات</span>
+                            <span class="badge bg-primary rounded-pill" id="totalBlocks">0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span data-i18n="stats_total_citizens">إجمالي عدد المواطنين</span>
+                            <span class="badge bg-success rounded-pill" id="totalCitizens">0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span data-i18n="stats_today_operations">عمليات اليوم</span>
+                            <span class="badge bg-info rounded-pill" id="todayOperations">0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span data-i18n="stats_chain_status">حالة السلسلة</span>
+                            <span id="chainStatus" class="badge bg-warning">جاري الفحص...</span>
+                        </li>
+                    </ul>
+                    <div class="card-footer text-center">
+                        <p class="mb-0 text-muted" data-i18n="stats_last_hash">آخر هاش للبلوك:</p>
+                        <code id="lastBlockHash" class="text-truncate d-block">...</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Citizen Card -->
+            <div class="col-lg-8">
+                <div class="card p-4 h-100" id="addCitizenCard">
+                    <h4 class="card-title text-center mb-4 d-flex justify-content-center align-items-center">
+                        <lord-icon src="https://cdn.lordicon.com/xxdqfhbi.json" trigger="hover"
+                            colors="primary:#ffffff,secondary:#28a745" style="width:50px;height:50px"
+                            class="me-2"></lord-icon>
+                        <span data-i18n="add_citizen_title">إضافة مواطن جديد</span>
+                    </h4>
+                    <form id="addCitizenForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label" data-i18n="add_citizen_full_name">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="fullName" placeholder="أدخل الاسم الكامل" required>
+                            <div class="invalid-feedback" data-i18n="add_citizen_full_name_invalid">الرجاء إدخال الاسم الكامل.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nationalId" class="form-label" data-i18n="add_citizen_national_id">الرقم القومي (14 رقم)</label>
+                                <input type="text" class="form-control" id="nationalId" placeholder="أدخل الرقم القومي"
+                                    pattern="^\d{14}$" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_national_id_invalid">الرجاء إدخال رقم قومي صحيح مكون من 14 رقم.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="birthDate" class="form-label" data-i18n="add_citizen_birth_date">تاريخ الميلاد</label>
+                                <input type="date" class="form-control" id="birthDate" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_birth_date_invalid">الرجاء إدخال تاريخ ميلاد صحيح.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label" data-i18n="add_citizen_gender">النوع</label>
+                                <select class="form-select" id="gender" required>
+                                    <option value="" data-i18n="add_citizen_gender_select">اختر النوع</option>
+                                    <option value="ذكر" data-i18n="add_citizen_gender_male">ذكر</option>
+                                    <option value="أنثى" data-i18n="add_citizen_gender_female">أنثى</option>
+                                </select>
+                                <div class="invalid-feedback" data-i18n="add_citizen_gender_invalid">الرجاء اختيار النوع.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="maritalStatus" class="form-label" data-i18n="add_citizen_marital_status">الحالة الاجتماعية</label>
+                                <select class="form-select" id="maritalStatus" required>
+                                    <option value="" data-i18n="add_citizen_marital_status_select">اختر الحالة</option>
+                                    <option value="أعزب" data-i18n="add_citizen_marital_status_single">أعزب</option>
+                                    <option value="متزوج" data-i18n="add_citizen_marital_status_married">متزوج</option>
+                                    <option value="مطلق" data-i18n="add_citizen_marital_status_divorced">مطلق</option>
+                                    <option value="أرمل" data-i18n="add_citizen_marital_status_widowed">أرمل</option>
+                                </select>
+                                <div class="invalid-feedback" data-i18n="add_citizen_marital_status_invalid">الرجاء اختيار الحالة الاجتماعية.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label" data-i18n="add_citizen_address">العنوان</label>
+                            <textarea class="form-control" id="address" rows="2" placeholder="أدخل العنوان بالتفصيل" required></textarea>
+                            <div class="invalid-feedback" data-i18n="add_citizen_address_invalid">الرجاء إدخال العنوان.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label" data-i18n="add_citizen_phone">رقم الهاتف</label>
+                                <input type="tel" class="form-control" id="phone" placeholder="أدخل رقم الهاتف" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_phone_invalid">الرجاء إدخال رقم الهاتف.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label" data-i18n="add_citizen_email">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" id="email" placeholder="example@email.com" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_email_invalid">الرجاء إدخال بريد إلكتروني صالح.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="job" class="form-label" data-i18n="add_citizen_job">المهنة</label>
+                                <input type="text" class="form-control" id="job" placeholder="أدخل المهنة" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_job_invalid">الرجاء إدخال المهنة.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="education" class="form-label" data-i18n="add_citizen_education">المؤهل الدراسي</label>
+                                <input type="text" class="form-control" id="education" placeholder="أدخل المؤهل الدراسي" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_education_invalid">الرجاء إدخال المؤهل الدراسي.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="familyMembers" class="form-label" data-i18n="add_citizen_family_members">عدد أفراد الأسرة</label>
+                                <input type="number" class="form-control" id="familyMembers" min="1" placeholder="مثال: 5" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_family_members_invalid">الرجاء إدخال عدد أفراد الأسرة.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="religion" class="form-label" data-i18n="add_citizen_religion">الديانة</label>
+                                <input type="text" class="form-control" id="religion" placeholder="مسلم / مسيحي / أخرى" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_religion_invalid">الرجاء إدخال الديانة.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bloodType" class="form-label" data-i18n="add_citizen_blood_type">فصيلة الدم</label>
+                                <input type="text" class="form-control" id="bloodType" placeholder="مثال: A+, B-, O+" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_blood_type_invalid">الرجاء إدخال فصيلة الدم.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nationality" class="form-label" data-i18n="add_citizen_nationality">الجنسية</label>
+                                <input type="text" class="form-control" id="nationality" placeholder="مثال: مصري" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_nationality_invalid">الرجاء إدخال الجنسية.</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="housingType" class="form-label" data-i18n="add_citizen_housing_type">نوع السكن</label>
+                                <select class="form-select" id="housingType" required>
+                                    <option value="" data-i18n="add_citizen_housing_type_select">اختر النوع</option>
+                                    <option value="تمليك" data-i18n="add_citizen_housing_type_owned">تمليك</option>
+                                    <option value="إيجار" data-i18n="add_citizen_housing_type_rented">إيجار</option>
+                                    <option value="بدون سكن" data-i18n="add_citizen_housing_type_no_housing">بدون سكن</option>
+                                </select>
+                                <div class="invalid-feedback" data-i18n="add_citizen_housing_type_invalid">الرجاء اختيار نوع السكن.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="healthStatus" class="form-label" data-i18n="add_citizen_health_status">الحالة الصحية</label>
+                                <input type="text" class="form-control" id="healthStatus" placeholder="مثال: سليم / مريض ضغط" required>
+                                <div class="invalid-feedback" data-i18n="add_citizen_health_status_invalid">الرجاء إدخال الحالة الصحية.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label" data-i18n="add_citizen_notes">ملاحظات إضافية</label>
+                            <textarea class="form-control" id="notes" rows="2" placeholder="أدخل أي ملاحظات إضافية" required></textarea>
+                            <div class="invalid-feedback" data-i18n="add_citizen_notes_invalid">الرجاء إدخال ملاحظات.</div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-success-custom btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i><span data-i18n="add_citizen_add_btn">إضافة المواطن</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search Citizen Card -->
+            <div class="col-lg-6 mt-4">
+                <div class="card p-4 h-100" id="searchCitizenCard">
+                    <h4 class="card-title text-center mb-4 d-flex justify-content-center align-items-center">
+                        <lord-icon src="https://cdn.lordicon.com/xfftupfv.json" trigger="hover"
+                            colors="primary:#ffffff,secondary:#17a2b8" style="width:50px;height:50px"
+                            class="me-2"></lord-icon>
+                        <span data-i18n="search_citizen_title">البحث عن مواطن</span>
+                    </h4>
+                    <form id="searchCitizenForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="searchNationalId" class="form-label" data-i18n="search_citizen_national_id">الرقم القومي (14 رقم)</label>
+                            <input type="text" class="form-control" id="searchNationalId"
+                                placeholder="أدخل الرقم القومي للبحث" pattern="^\d{14}$" required>
+                            <div class="invalid-feedback" data-i18n="search_citizen_national_id_invalid">الرجاء إدخال رقم قومي صحيح مكون من 14 رقم.</div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-custom btn-info-custom btn-lg">
+                                <i class="fas fa-search me-2"></i><span data-i18n="search_citizen_search_btn">بحث</span>
+                            </button>
+                        </div>
+                    </form>
+                    <div id="searchResults" class="mt-4">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verify Chain Card -->
+            <div class="col-lg-6 mt-4">
+                <div class="card p-4 h-100" id="verifyChainCard">
+                    <h4 class="card-title text-center mb-4 d-flex justify-content-center align-items-center">
+                        <lord-icon src="https://cdn.lordicon.com/qhviklyi.json" trigger="hover"
+                            colors="primary:#ffffff,secondary:#17a2b8" style="width:50px;height:50px"
+                            class="me-2"></lord-icon>
+                        <span data-i18n="verify_chain_title">التحقق من سلامة السلسلة</span>
+                    </h4>
+                    <div class="text-center">
+                        <button class="btn btn-custom btn-info-custom btn-lg" id="verifyChainBtn">
+                            <i class="fas fa-shield-alt me-2"></i><span data-i18n="verify_chain_check_btn">فحص سلامة البلوك تشين</span>
+                        </button>
+                    </div>
+                    <div id="verificationResults" class="mt-4" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Blocks Card -->
+            <div class="col-12 mt-4">
+                <div class="card p-4" id="viewBlocksCard">
+                    <h4 class="card-title text-center mb-4 d-flex justify-content-center align-items-center">
+                        <lord-icon src="https://cdn.lordicon.com/uukerzzv.json" trigger="hover"
+                            colors="primary:#ffffff,secondary:#8862e0" style="width:50px;height:50px"
+                            class="me-2"></lord-icon>
+                        <span data-i18n="view_blocks_title">استعراض البلوكات</span>
+                    </h4>
+                    <div id="blocksContainer" class="list-group">
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-custom" id="prevPageBtn" style="display: none;">
+                            <i class="fas fa-arrow-right me-2"></i><span data-i18n="view_blocks_prev_btn">السابق</span>
+                        </button>
+                        <button class="btn btn-custom" id="nextPageBtn" style="display: none;">
+                            <span data-i18n="view_blocks_next_btn">التالي</span><i class="fas fa-arrow-left ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+            <p class="mt-2" data-i18n="loading_message">جاري المعالجة...</p>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="messagesArea">
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase config (define window.FIREBASE_* values) -->
+    <script src="js/firebase-config.js"></script>
+
+    <!-- Custom Firebase Authentication -->
+    <script src="js/firebase-auth.js"></script>
+    
+    <!-- Main Application Scripts -->
+    <script>
+        // Hide welcome section and show main content when authenticated
+        function showMainContent() {
+            document.getElementById('welcomeSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+        
+        // Show welcome section and hide main content when not authenticated
+        function showWelcomeSection() {
+            document.getElementById('welcomeSection').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+    </script>
+    
+    <script src="js/ui.js"></script>
+    <script src="js/app.js?v=1.0.2"></script>
+
+</body>
+</html>

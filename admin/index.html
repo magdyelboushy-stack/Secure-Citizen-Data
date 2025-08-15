@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الإدارة - نظام خزينة بيانات المواطنين</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style/styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../image/google.png">
+</head>
+
+<body>
+    <!-- Admin Login Modal -->
+    <div class="modal fade" id="adminLoginModal" tabindex="-1" aria-labelledby="adminLoginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="adminLoginModalLabel">
+                        <i class="fas fa-user-shield me-2"></i>تسجيل دخول الإدارة
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="adminLoginForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="adminEmail" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="adminEmail" placeholder="أدخل بريدك الإلكتروني" required>
+                            <div class="invalid-feedback">الرجاء إدخال بريد إلكتروني صالح.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="adminPassword" class="form-label">كلمة المرور</label>
+                            <input type="password" class="form-control" id="adminPassword" placeholder="أدخل كلمة المرور" required>
+                            <div class="invalid-feedback">الرجاء إدخال كلمة المرور.</div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-success-custom" id="adminLoginBtn">
+                                <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Header -->
+    <nav class="navbar navbar-expand-lg admin-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>
+                لوحة تحكم الإدارة
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span id="adminName">الإدارة</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" id="adminProfileBtn">
+                            <i class="fas fa-user me-2"></i>الملف الشخصي
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" id="adminSettingsBtn">
+                            <i class="fas fa-cog me-2"></i>الإعدادات
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="adminLogoutBtn">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Admin Content -->
+    <div class="container-fluid mt-4" id="adminContent" style="display: none;">
+        <!-- Dashboard Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-tachometer-alt me-3"></i>
+                    لوحة تحكم الإدارة
+                </h2>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalCitizens">0</h3>
+                        <p>إجمالي المواطنين</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalEmployees">0</h3>
+                        <p>إجمالي الموظفين</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalBlocks">0</h3>
+                        <p>إجمالي البلوكات</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="todayOperations">0</h3>
+                        <p>عمليات اليوم</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt me-2"></i>إجراءات سريعة</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <button class="btn btn-custom btn-success-custom w-100" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                                    <i class="fas fa-user-plus me-2"></i>إضافة موظف
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-custom btn-info-custom w-100" id="backupDataBtn">
+                                    <i class="fas fa-download me-2"></i>نسخ احتياطي
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-custom btn-warning-custom w-100" id="verifyChainBtn">
+                                    <i class="fas fa-shield-check me-2"></i>فحص السلسلة
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-custom btn-danger-custom w-100" id="emergencyBtn">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>حالة الطوارئ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Tabs -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                                    <i class="fas fa-chart-bar me-2"></i>التحليلات
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="employees-tab" data-bs-toggle="tab" data-bs-target="#employees" type="button" role="tab">
+                                    <i class="fas fa-user-tie me-2"></i>إدارة الموظفين
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
+                                    <i class="fas fa-list-alt me-2"></i>سجل العمليات
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                                    <i class="fas fa-shield-alt me-2"></i>الأمان
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab">
+                                    <i class="fas fa-database me-2"></i>النسخ الاحتياطي
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                                    <i class="fas fa-cog me-2"></i>الإعدادات
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="citizens-tab" data-bs-toggle="tab" data-bs-target="#citizens" type="button" role="tab">
+                                    <i class="fas fa-users me-2"></i>المواطنون
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="adminTabsContent">
+                            <!-- Analytics Tab -->
+                            <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="analytics-card">
+                                            <h4><i class="fas fa-venus-mars me-2"></i>توزيع النوع</h4>
+                                            <div class="chart-container">
+                                                <canvas id="genderChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="analytics-card">
+                                            <h4><i class="fas fa-calendar-alt me-2"></i>توزيع العمر</h4>
+                                            <div class="chart-container">
+                                                <canvas id="ageChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-lg-6">
+                                        <div class="analytics-card">
+                                            <h4><i class="fas fa-graduation-cap me-2"></i>التوزيع التعليمي</h4>
+                                            <div class="chart-container">
+                                                <canvas id="educationChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="analytics-card">
+                                            <h4><i class="fas fa-home me-2"></i>نوع السكن</h4>
+                                            <div class="chart-container">
+                                                <canvas id="housingChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="analytics-card">
+                                            <h4><i class="fas fa-table me-2"></i>إحصائيات مفصلة</h4>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>المعيار</th>
+                                                            <th>العدد</th>
+                                                            <th>النسبة المئوية</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="detailedStats">
+                                                        <!-- Will be populated by JavaScript -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Employees Tab -->
+                            <div class="tab-pane fade" id="employees" role="tabpanel">
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <button class="btn btn-custom btn-success-custom" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                                            <i class="fas fa-plus me-2"></i>إضافة موظف جديد
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>الاسم</th>
+                                                <th>البريد الإلكتروني</th>
+                                                <th>الصلاحية</th>
+                                                <th>تاريخ التسجيل</th>
+                                                <th>آخر تسجيل دخول</th>
+                                                <th>الحالة</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employeesTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Logs Tab -->
+                            <div class="tab-pane fade" id="logs" role="tabpanel">
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="logSearch" placeholder="البحث في السجلات...">
+                                            <button class="btn btn-custom" type="button" id="searchLogsBtn">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="logFilter">
+                                            <option value="">جميع العمليات</option>
+                                            <option value="INSERT">إضافة مواطن</option>
+                                            <option value="SEARCH">بحث</option>
+                                            <option value="VERIFY">تحقق</option>
+                                            <option value="LOGIN">تسجيل دخول</option>
+                                            <option value="LOGOUT">تسجيل خروج</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="date" class="form-control" id="logDateFilter">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-custom btn-info-custom w-100" id="exportLogsBtn">
+                                            <i class="fas fa-download me-2"></i>تصدير
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>التاريخ والوقت</th>
+                                                <th>نوع العملية</th>
+                                                <th>المستخدم</th>
+                                                <th>عنوان IP</th>
+                                                <th>التفاصيل</th>
+                                                <th>الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="logsTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Security Tab -->
+                            <div class="tab-pane fade" id="security" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="security-card">
+                                            <h4><i class="fas fa-shield-alt me-2"></i>حالة الأمان</h4>
+                                            <div class="security-status">
+                                                <div class="status-item">
+                                                    <span class="status-label">حالة السلسلة:</span>
+                                                    <span class="status-value" id="chainStatus">جاري الفحص...</span>
+                                                </div>
+                                                <div class="status-item">
+                                                    <span class="status-label">آخر فحص:</span>
+                                                    <span class="status-value" id="lastCheck">-</span>
+                                                </div>
+                                                <div class="status-item">
+                                                    <span class="status-label">المحاولات المشبوهة:</span>
+                                                    <span class="status-value" id="suspiciousAttempts">0</span>
+                                                </div>
+                                                <div class="status-item">
+                                                    <span class="status-label">حالة الحماية:</span>
+                                                    <span class="status-value" id="protectionStatus">مفعلة</span>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button class="btn btn-custom btn-info-custom me-2" id="verifyChainBtn">
+                                                    <i class="fas fa-shield-check me-2"></i>فحص سلامة السلسلة
+                                                </button>
+                                                <button class="btn btn-custom btn-warning-custom" id="securitySettingsBtn">
+                                                    <i class="fas fa-cog me-2"></i>إعدادات الأمان
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="security-card">
+                                            <h4><i class="fas fa-exclamation-triangle me-2"></i>التهديدات الأخيرة</h4>
+                                            <div id="threatsList">
+                                                <!-- Will be populated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="security-card">
+                                            <h4><i class="fas fa-chart-line me-2"></i>إحصائيات الأمان</h4>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="security-stat">
+                                                        <h5 id="totalLogins">0</h5>
+                                                        <p>إجمالي تسجيلات الدخول</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="security-stat">
+                                                        <h5 id="failedLogins">0</h5>
+                                                        <p>محاولات فاشلة</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="security-stat">
+                                                        <h5 id="blockedIPs">0</h5>
+                                                        <p>عناوين IP محظورة</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="security-stat">
+                                                        <h5 id="securityScore">85%</h5>
+                                                        <p>معدل الأمان</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Backup Tab -->
+                            <div class="tab-pane fade" id="backup" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="backup-card">
+                                            <h4><i class="fas fa-download me-2"></i>إنشاء نسخة احتياطية</h4>
+                                            <p class="text-muted">قم بإنشاء نسخة احتياطية من جميع البيانات</p>
+                                            <div class="backup-options">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="backupCitizens" checked>
+                                                    <label class="form-check-label" for="backupCitizens">
+                                                        بيانات المواطنين
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="backupEmployees" checked>
+                                                    <label class="form-check-label" for="backupEmployees">
+                                                        بيانات الموظفين
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="backupLogs" checked>
+                                                    <label class="form-check-label" for="backupLogs">
+                                                        سجلات النظام
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="backupBlockchain" checked>
+                                                    <label class="form-check-label" for="backupBlockchain">
+                                                        سلسلة البلوك تشين
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-custom btn-success-custom mt-3" id="createBackupBtn">
+                                                <i class="fas fa-download me-2"></i>إنشاء نسخة احتياطية
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="backup-card">
+                                            <h4><i class="fas fa-upload me-2"></i>استعادة النسخة الاحتياطية</h4>
+                                            <p class="text-muted">قم باستعادة البيانات من نسخة احتياطية</p>
+                                            <div class="mb-3">
+                                                <label for="backupFile" class="form-label">اختر ملف النسخة الاحتياطية</label>
+                                                <input type="file" class="form-control" id="backupFile" accept=".json,.sql">
+                                            </div>
+                                            <button class="btn btn-custom btn-warning-custom" id="restoreBackupBtn">
+                                                <i class="fas fa-upload me-2"></i>استعادة النسخة الاحتياطية
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="backup-card">
+                                            <h4><i class="fas fa-history me-2"></i>النسخ الاحتياطية السابقة</h4>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>التاريخ</th>
+                                                            <th>الحجم</th>
+                                                            <th>النوع</th>
+                                                            <th>الحالة</th>
+                                                            <th>الإجراءات</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="backupHistoryTable">
+                                                        <!-- Will be populated by JavaScript -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Settings Tab -->
+                            <div class="tab-pane fade" id="settings" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="settings-card">
+                                            <h4><i class="fas fa-cog me-2"></i>إعدادات النظام</h4>
+                                            <form id="systemSettingsForm">
+                                                <div class="mb-3">
+                                                    <label for="systemName" class="form-label">اسم النظام</label>
+                                                    <input type="text" class="form-control" id="systemName" value="نظام خزينة بيانات المواطنين">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="systemAdminEmail" class="form-label">بريد الإدارة</label>
+                                                    <input type="email" class="form-control" id="systemAdminEmail" value="admin@citizens.gov">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="sessionTimeout" class="form-label">مهلة الجلسة (دقائق)</label>
+                                                    <input type="number" class="form-control" id="sessionTimeout" value="30" min="5" max="120">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="maxLoginAttempts" class="form-label">الحد الأقصى لمحاولات تسجيل الدخول</label>
+                                                    <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="3" max="10">
+                                                </div>
+                                                <button type="submit" class="btn btn-custom btn-success-custom">
+                                                    <i class="fas fa-save me-2"></i>حفظ الإعدادات
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="settings-card">
+                                            <h4><i class="fas fa-shield-alt me-2"></i>إعدادات الأمان</h4>
+                                            <form id="securitySettingsForm">
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="enableTwoFactor" checked>
+                                                        <label class="form-check-label" for="enableTwoFactor">
+                                                            تفعيل المصادقة الثنائية
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="enableIPBlocking" checked>
+                                                        <label class="form-check-label" for="enableIPBlocking">
+                                                            حظر عناوين IP المشبوهة
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="enableAuditLog" checked>
+                                                        <label class="form-check-label" for="enableAuditLog">
+                                                            تفعيل سجل التدقيق
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="enableAutoBackup">
+                                                        <label class="form-check-label" for="enableAutoBackup">
+                                                            النسخ الاحتياطي التلقائي
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-custom btn-warning-custom">
+                                                    <i class="fas fa-save me-2"></i>حفظ إعدادات الأمان
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Citizens Tab -->
+                            <div class="tab-pane fade" id="citizens" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="citizenSearchInput" placeholder="ابحث بالرقم القومي">
+                                            <button class="btn btn-custom" type="button" id="citizenSearchBtn">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>الرقم القومي</th>
+                                                <th>الاسم الكامل</th>
+                                                <th>تاريخ الميلاد</th>
+                                                <th>النوع</th>
+                                                <th>العنوان</th>
+                                                <th>الهاتف</th>
+                                                <th>البريد الإلكتروني</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="citizensTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="addEmployeeModalLabel">
+                        <i class="fas fa-user-plus me-2"></i>إضافة موظف جديد
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addEmployeeForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="employeeName" class="form-label">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="employeeName" placeholder="أدخل الاسم الكامل" required>
+                            <div class="invalid-feedback">الرجاء إدخال الاسم الكامل.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="employeeEmail" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="employeeEmail" placeholder="أدخل البريد الإلكتروني" required>
+                            <div class="invalid-feedback">الرجاء إدخال بريد إلكتروني صالح.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="employeePassword" class="form-label">كلمة المرور</label>
+                            <input type="password" class="form-control" id="employeePassword" placeholder="أدخل كلمة المرور" required minlength="6">
+                            <div class="invalid-feedback">الرجاء إدخال كلمة مرور (6 أحرف على الأقل).</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="employeeRole" class="form-label">الصلاحية</label>
+                            <select class="form-select" id="employeeRole" required>
+                                <option value="">اختر الصلاحية</option>
+                                <option value="employee">موظف</option>
+                                <option value="supervisor">مشرف</option>
+                                <option value="admin">مدير</option>
+                            </select>
+                            <div class="invalid-feedback">الرجاء اختيار الصلاحية.</div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-success-custom">
+                                <i class="fas fa-plus me-2"></i>إضافة الموظف
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="editEmployeeModalLabel">
+                        <i class="fas fa-user-edit me-2"></i>تعديل بيانات الموظف
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEmployeeForm" class="needs-validation" novalidate>
+                        <input type="hidden" id="editEmployeeId">
+                        <div class="mb-3">
+                            <label for="editEmployeeName" class="form-label">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="editEmployeeName" placeholder="أدخل الاسم الكامل" required>
+                            <div class="invalid-feedback">الرجاء إدخال الاسم الكامل.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmployeeEmail" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="editEmployeeEmail" placeholder="أدخل البريد الإلكتروني" required>
+                            <div class="invalid-feedback">الرجاء إدخال بريد إلكتروني صالح.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmployeeRole" class="form-label">الصلاحية</label>
+                            <select class="form-select" id="editEmployeeRole" required>
+                                <option value="">اختر الصلاحية</option>
+                                <option value="employee">موظف</option>
+                                <option value="supervisor">مشرف</option>
+                                <option value="admin">مدير</option>
+                            </select>
+                            <div class="invalid-feedback">الرجاء اختيار الصلاحية.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmployeeStatus" class="form-label">الحالة</label>
+                            <select class="form-select" id="editEmployeeStatus" required>
+                                <option value="active">نشط</option>
+                                <option value="inactive">غير نشط</option>
+                                <option value="suspended">معلق</option>
+                            </select>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-info-custom">
+                                <i class="fas fa-save me-2"></i>حفظ التغييرات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Profile Modal -->
+    <div class="modal fade" id="adminProfileModal" tabindex="-1" aria-labelledby="adminProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="adminProfileModalLabel">
+                        <i class="fas fa-user me-2"></i>الملف الشخصي
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="adminProfileForm">
+                        <div class="mb-3">
+                            <label for="profileName" class="form-label">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="profileName" value="مدير النظام">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileEmail" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="profileEmail" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileRole" class="form-label">الصلاحية</label>
+                            <input type="text" class="form-control" id="profileRole" value="مدير النظام" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileLastLogin" class="form-label">آخر تسجيل دخول</label>
+                            <input type="text" class="form-control" id="profileLastLogin" readonly>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-custom btn-success-custom">
+                                <i class="fas fa-save me-2"></i>حفظ التغييرات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings Modal -->
+    <div class="modal fade" id="securitySettingsModal" tabindex="-1" aria-labelledby="securitySettingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card">
+                <div class="modal-header card-header">
+                    <h5 class="modal-title" id="securitySettingsModalLabel">
+                        <i class="fas fa-shield-alt me-2"></i>إعدادات الأمان المتقدمة
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>إعدادات المصادقة</h6>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableTwoFactorAuth" checked>
+                                    <label class="form-check-label" for="enableTwoFactorAuth">
+                                        تفعيل المصادقة الثنائية
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="requireStrongPassword" checked>
+                                    <label class="form-check-label" for="requireStrongPassword">
+                                        كلمات مرور قوية
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableSessionTimeout" checked>
+                                    <label class="form-check-label" for="enableSessionTimeout">
+                                        انتهاء صلاحية الجلسة
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>إعدادات الحماية</h6>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableIPWhitelist">
+                                    <label class="form-check-label" for="enableIPWhitelist">
+                                        قائمة IP المسموح بها
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableRateLimiting" checked>
+                                    <label class="form-check-label" for="enableRateLimiting">
+                                        تحديد معدل الطلبات
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableAuditTrail" checked>
+                                    <label class="form-check-label" for="enableAuditTrail">
+                                        سجل التدقيق الكامل
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-custom btn-success-custom" id="saveSecuritySettings">
+                            <i class="fas fa-save me-2"></i>حفظ الإعدادات
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Modal -->
+    <div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card">
+                <div class="modal-header card-header bg-danger text-white">
+                    <h5 class="modal-title" id="emergencyModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>حالة الطوارئ
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>تحذير:</strong> هذه الإجراءات حساسة وقد تؤثر على النظام
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-danger w-100 mb-2" id="emergencyLockdown">
+                                <i class="fas fa-lock me-2"></i>إغلاق النظام
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-warning w-100 mb-2" id="emergencyBackup">
+                                <i class="fas fa-download me-2"></i>نسخة احتياطية فورية
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-info w-100 mb-2" id="emergencyLogs">
+                                <i class="fas fa-file-alt me-2"></i>تصدير السجلات
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-secondary w-100 mb-2" id="emergencyReset">
+                                <i class="fas fa-redo me-2"></i>إعادة تعيين النظام
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loadingIndicator">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+        </div>
+        <p class="mt-2">جاري المعالجة...</p>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="messagesArea"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+        <!-- Firebase config (define window.FIREBASE_* values) -->
+    <script src="../js/firebase-config.js"></script>
+    
+    <!-- Real Firebase Authentication Module -->
+    <script src="../js/firebase-auth.js"></script>
+    <script src="admin-firebase.js"></script>
+    
+</body>
+
+</html>
